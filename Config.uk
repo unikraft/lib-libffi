@@ -1,0 +1,13 @@
+menuconfig LIBFFI
+    bool "libffi - Portable Foreign Function Interface Library"
+    default n
+
+if LIBFFI
+    config LIBFFI_NO_TYPES
+    bool "Use external ffi_type_* definitions"
+    default n
+    help
+        When selected, libffi will not provide definitions for ffi_type_*,
+        expecting these to be supplied by an external library.
+
+endif

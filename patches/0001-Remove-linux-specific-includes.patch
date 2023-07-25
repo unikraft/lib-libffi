@@ -1,0 +1,32 @@
+From d1b0fb225be3c8a3b2747413b020cf1af049f796 Mon Sep 17 00:00:00 2001
+From: Andrei Tatar <andrei@unikraft.io>
+Date: Thu, 20 Jul 2023 15:12:21 +0200
+Subject: [PATCH] Remove linux-specific includes
+
+Signed-off-by: Andrei Tatar <andrei@unikraft.io>
+---
+ src/tramp.c | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/src/tramp.c b/src/tramp.c
+index b9d273a..901cad7 100644
+--- a/src/tramp.c
++++ b/src/tramp.c
+@@ -47,14 +47,8 @@
+ #include <pthread.h>
+ #include <sys/mman.h>
+ #include <tramp.h>
+-#ifdef __linux__
+-#include <linux/limits.h>
+-#include <linux/types.h>
+-#endif
+-#ifdef __CYGWIN__
+ #include <limits.h>
+ #endif
+-#endif
+ 
+ /*
+  * Each architecture defines static code for a trampoline code table. The
+-- 
+2.41.0
+
