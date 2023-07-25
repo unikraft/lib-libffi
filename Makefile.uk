@@ -1,0 +1,105 @@
+#  libffi Makefile.uk
+#
+#  Authors: Andrei Tatar <andrei@unikraft.io>
+#
+#  Copyright (c) 2023, Unikraft GmbH and The Unikraft Authors.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions
+#  are met:
+#
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#  3. Neither the name of the copyright holder nor the names of its
+#     contributors may be used to endorse or promote products derived from
+#     this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
+
+################################################################################
+# Library registration
+################################################################################
+$(eval $(call addlib_s,libffi,$(CONFIG_LIBFFI)))
+
+################################################################################
+# Sources
+################################################################################
+LIBFFI_VERSION=3.4.4
+LIBFFI_URL=https://github.com/libffi/libffi/releases/download/v$(LIBFFI_VERSION)/libffi-$(LIBFFI_VERSION).tar.gz
+LIBFFI_DIRNAME=libffi-$(LIBFFI_VERSION)
+LIBFFI_PATCHDIR=$(LIBFFI_BASE)/patches
+$(eval $(call fetch,libffi,$(LIBFFI_URL)))
+$(eval $(call patch,libffi,$(LIBFFI_PATCHDIR),$(LIBFFI_DIRNAME)))
+
+################################################################################
+# Helpers
+################################################################################
+LIBFFI_SRC = $(LIBFFI_ORIGIN)/$(LIBFFI_DIRNAME)
+
+################################################################################
+# Library includes
+################################################################################
+# API
+LIBFFI__X86API += -I$(LIBFFI_BASE)/arch/x86_64/include
+
+ifeq ($(CONFIG_ARCH_X86_64),y)
+CINCLUDES-$(CONFIG_LIBFFI) += $(LIBFFI__X86API)
+CXXINCLUDES-$(CONFIG_LIBFFI) += $(LIBFFI__X86API)
+ASINCLUDES-$(CONFIG_LIBFFI) += $(LIBFFI__X86API)
+endif
+
+# Internal
+LIBFFI_INCLUDES-$(CONFIG_ARCH_X86_64) += -I$(LIBFFI_BASE)/arch/x86_64
+LIBFFI_INCLUDES-y += -I$(LIBFFI_SRC)
+LIBFFI_INCLUDES-y += -I$(LIBFFI_SRC)/include
+LIBFFI_INCLUDES-y += -I$(LIBFFI_SRC)/src
+
+LIBFFI_CINCLUDES-y += $(LIBFFI_INCLUDES-y)
+LIBFFI_ASINCLUDES-y += $(LIBFFI_INCLUDES-y)
+
+################################################################################
+# Global flags
+################################################################################
+LIBFFI_COMMONFLAGS += -DHAVE_CONFIG_H
+LIBFFI_COMMONFLAGS += -D__linux__
+LIBFFI_FLAGS += -fstrict-aliasing
+LIBFFI_FLAGS += -ffast-math
+LIBFFI_FLAGS += -fexceptions
+LIBFFI_FLAGS += -Wall
+
+LIBFFI_CFLAGS += $(LIBFFI_COMMONFLAGS) $(LIBFFI_FLAGS)
+LIBFFI_ASFLAGS += $(LIBFFI_COMMONFLAGS)
+
+################################################################################
+# Library sources
+################################################################################
+# These are taken from what upstream builds and sorted in alphabetical order.
+# Please maintain this ordering when updating the library.
+################################################################################
+LIBFFI_SRCS-y += $(LIBFFI_SRC)/src/closures.c
+LIBFFI_SRCS-y += $(LIBFFI_SRC)/src/java_raw_api.c
+LIBFFI_SRCS-y += $(LIBFFI_SRC)/src/prep_cif.c
+LIBFFI_SRCS-y += $(LIBFFI_SRC)/src/raw_api.c
+LIBFFI_SRCS-y += $(LIBFFI_SRC)/src/tramp.c
+ifneq ($(CONFIG_LIBFFI_NO_TYPES),y)
+LIBFFI_SRCS-y += $(LIBFFI_SRC)/src/types.c
+endif
+
+LIBFFI_SRCS-$(CONFIG_ARCH_X86_64) += $(LIBFFI_SRC)/src/x86/ffi64.c
+LIBFFI_SRCS-$(CONFIG_ARCH_X86_64) += $(LIBFFI_SRC)/src/x86/ffiw64.c
+LIBFFI_SRCS-$(CONFIG_ARCH_X86_64) += $(LIBFFI_SRC)/src/x86/unix64.S
+LIBFFI_SRCS-$(CONFIG_ARCH_X86_64) += $(LIBFFI_SRC)/src/x86/win64.S
