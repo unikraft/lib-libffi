@@ -1,0 +1,30 @@
+From b72b9bbbe5e27a8f004692f2c28603d3cf5571cb Mon Sep 17 00:00:00 2001
+From: Andrei Tatar <andrei@unikraft.io>
+Date: Thu, 24 Aug 2023 15:41:37 +0200
+Subject: [PATCH 2/2] Add missing declaration of internal function
+
+The function `open_temp_exec_file` is being used in tramp.c without
+declaration which is an error in newer compilers.
+This patch adds a manual declaration of this function prior to its use.
+
+Signed-off-by: Andrei Tatar <andrei@unikraft.io>
+---
+ src/tramp.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/tramp.c b/src/tramp.c
+index 901cad7..4dca116 100644
+--- a/src/tramp.c
++++ b/src/tramp.c
+@@ -247,6 +247,8 @@ ffi_tramp_get_libffi (void)
+ 
+ #if defined (__linux__) || defined (__CYGWIN__)
+ 
++int open_temp_exec_file(void);
++
+ static int
+ ffi_tramp_get_temp_file (void)
+ {
+-- 
+2.41.0
+
